@@ -10,26 +10,26 @@ The CloudFormation template and explanation is also posted on the [NETBEARS](htt
 git clone https://github.com/NETBEARS/php-mysql-ecs.git
 
 aws cloudformation create-stack \
-  --stack-name php-mysql-prod-and-uat \
+  --stack-name wordpress \
   --template-body file://cloudformation-template.yaml \
   --parameters \
-    ParameterKey=Ami,ParameterValue=ami-29f80351 \
+    ParameterKey=Ami,ParameterValue=ami-956e52f0 \
     ParameterKey=AsgMaxSize,ParameterValue=6 \
     ParameterKey=AsgMinSize,ParameterValue=2 \
     ParameterKey=CadvisorImage,ParameterValue=google/cadvisor:latest \
     ParameterKey=EmailAlerts,ParameterValue=email_for_alerts@domain.com \
     ParameterKey=InstanceType,ParameterValue=m4.large \
-    ParameterKey=KeyName,ParameterValue=YOUR_INSTANCE_KEY \
+    ParameterKey=KeyName,ParameterValue=spycam \
     ParameterKey=MYSQLDATABASE,ParameterValue=wordpress \
     ParameterKey=MYSQLUSER,ParameterValue=wordpress \
-    ParameterKey=MYSQLPASSWORD,ParameterValue=SECRET_PASSWORD \
+    ParameterKey=MYSQLPASSWORD,ParameterValue=password \
     ParameterKey=NodeExporterImage,ParameterValue=quay.io/prometheus/node-exporter:latest \
     ParameterKey=PcpImage,ParameterValue=mmitrofan/pcp:latest \
     ParameterKey=ProdWordpressImage,ParameterValue=wordpress:latest \
     ParameterKey=UatWordpressImage,ParameterValue=wordpress:latest \
-    ParameterKey=VpcId,ParameterValue=VPC_ID \
-    ParameterKey=SubnetID1,ParameterValue=SUBNET_IN_VPC_ID_1 \
-    ParameterKey=SubnetID2,ParameterValue=SUBNET_IN_VPC_ID_2 \
+    ParameterKey=VpcId,ParameterValue=vpc-fb718492 \
+    ParameterKey=SubnetID1,ParameterValue=subnet-614dbf08 \
+    ParameterKey=SubnetID2,ParameterValue=subnet-2720355f \
   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
 
 ```
@@ -51,32 +51,32 @@ aws cloudformation create-stack \
 * 4 Elastic File Systems (1 for each container in each environment)
 * 1 S3 bucket (for database backup)
 * 1 SNS topic (send monitoring alerts)
-          
+
 
 ## Autoscaling
 The autoscaling groups uses the following alarms to autoscale automatically based on load:
 * CpuUtilization
 * MemoryUtilization
-            
+
 Because of this, you wouldn't have to bother making sure that your hosts can sustain the load.
 
 ## Alarms
-In order to be sure that you have set up the proper limits for your containers, the following alerts have been but into place:            
+In order to be sure that you have set up the proper limits for your containers, the following alerts have been but into place:
 * NetworkInAlarm
 * RAMAlarmHigh
 * NetworkOutAlarm
 * IOWaitAlarmHigh
 * StatusAlarm
-            
+
 These CloudWatch alarms will send an email each time the limits are hit so that you will always be in control of what happens with your stack.
 
 ## Monitoring
 The stack launches 3 monitoring tools on each ECS host inside the cluster:
-            
+
 * [PCP](http://vectoross.io/) - An on-host performance monitoring framework which exposes hand picked high resolution metrics to every engineer’s browser
 * [NodeExporter](https://github.com/prometheus/node_exporter) - Prometheus exporter for hardware and OS metrics exposed by NIX kernels, written in Go with pluggable metric collectors
 * [cAdvisor](https://github.com/google/cadvisor) - cAdvisor (Container Advisor) provides container users an understanding of the resource usage and performance characteristics of their running containers.
-             
+
 To view the monitoring data, all you need to setup is a Prometheus host and a Grafana dashboard and you're all set.
 
 ## Logging
@@ -93,7 +93,7 @@ Due to its high-throughput and NFS connectivity mechanisms, it has been successf
 Although the data persistency is full-proof in case of container or host failure, we should still have a backup for the MySQL data, just to be sure.
 
 Because of this, a cronjob has been set up to run every 3 days on the ECS hosts that connect to each MySQL database and dump the data in an S3 bucket that is created inside the template.
-            
+
 ## Final notes
 Need help implementing this?
 
